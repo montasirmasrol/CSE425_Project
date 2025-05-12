@@ -1,0 +1,109 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+
+\title{Clustering MNIST Using Autoencoders and K-Means}
+
+\author{\IEEEauthorblockN{Montasir Chowdhury Masrol}
+\IEEEauthorblockA{Department of Computer Science\\
+Brac University\\
+Email: montasir.chowdhury.masrol@g.bracu.ac.bd}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper explores unsupervised learning by applying deep autoencoders for feature extraction and K-Means clustering on the MNIST dataset. The autoencoder is trained to compress and reconstruct input digit images, and the resulting latent features are clustered to identify digit groups. Evaluation is performed using the Silhouette Score and Davies-Bouldin Index. We also visualize the clusters using t-SNE and analyze the performance in terms of model complexity and clustering quality.
+\end{abstract}
+
+\section{Introduction}
+Clustering is a fundamental unsupervised learning task which is used to discover patterns or groupings in data. Traditional methods such as K-Means struggle with high-dimensional data like images. Autoencoders, a class of neural networks, provides a powerful means for nonlinear dimensionality reduction. This project combines an autoencoder with K-Means to cluster MNIST digit images, aiming to find meaningful groupings in the latent space. 
+
+\section{Dataset Analysis}
+The MNIST dataset contains 60,000 training images and 10,000 handwritten digit test images (0-9), each of the 28x28 pixels in size. Each image is converted to a 784-dimensional vector and normalized to have mean 0.5 and standard deviation 0.5. The data is loaded and shuffled using PyTorch's DataLoader with a batch size of 128.
+
+\section{Neural Network Architecture}
+I used a simple fully connected autoencoder with the following structure:
+
+\begin{itemize}
+    \item \textbf{Encoder}: 784 → 256 → 64
+    \item \textbf{Decoder}: 64 → 256 → 784
+\end{itemize}
+
+The encoder compresses the input into a 64-dimensional latent vector and the decoder reconstructs the original image. ReLU activations are used in hidden layers, and Tanh is used in the output to match the normalized input range.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.45\textwidth]{A_block_diagram_in_a_digital_vector_graphic_illust.png}}
+\caption{Block diagram of the Autoencoder architecture.}
+\label{fig:autoencoder}
+\end{figure}
+
+
+
+\section{Implementation Details}
+The model is implemented using PyTorch. Training is done with the Mean Squared Error (MSE) loss and the Adam optimizer. The model is trained for 10 epochs using the training portion of the MNIST dataset.
+
+\section{Clustering and Evaluation}
+After training, I extract latent representations from the encoder and apply K-Means clustering with $k=10$ (matching the number of digit classes). Cluster performance is evaluated using the following.
+
+\begin{itemize}
+    \item \textbf{Silhouette Score}: Measures how similar an object is to its own cluster versus others.
+    \item \textbf{Davies-Bouldin Index}: Measures intra-cluster similarity and inter-cluster differences.
+\end{itemize}
+
+\textbf{Results:}
+\begin{itemize}
+    \item Silhouette Score: 0.4521
+    \item Davies-Bouldin Index: 1.9034
+\end{itemize}
+
+\section{Visualization}
+I apply t-SNE on the 64-dimensional latent space to project it into 2D for visualization. The resulting scatter plot (Figure \ref{fig_tsne}) shows how well the clusters are separated.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.45\textwidth]{tsne_clusters.png}}
+\caption{t-SNE visualization of the clusters in latent space.}
+\label{fig_tsne}
+\end{figure}
+
+
+\section{Hyperparameter Tuning}
+I experimented with the latent space size, batch size, and learning rate. A latent dimension of 64 provided a balance between compression and reconstruction quality. The model was stable with a learning rate of $1 \times 10^{-3}$ and a batch size of 128.
+
+\section{Model Parameters}
+The total number of trainable parameters is approximately 297,000, distributed as follows:
+
+\begin{itemize}
+    \item Encoder: (784$\times$256 + 256) + (256$\times$64 + 64)
+    \item Decoder: (64$\times$256 + 256) + (256$\times$784 + 784)
+\end{itemize}
+
+\section{Regularization Techniques}
+No regularization techniques such as dropout or batch normalization were applied. These could potentially help reduce overfitting and improve generalization in future work.
+
+\section{Comparison with Traditional Clustering}
+Clustering with K-Means directly on raw pixel values resulted in lower quality clusters due to the high dimensionality and sparsity of the image data. The autoencoder-based approach significantly improved cluster compactness and separation in latent space.
+
+\section{Labeling and Accuracy Estimation}
+As this is an unsupervised method, the clusters do not have direct labels. To estimate accuracy, we assign the most frequent true label in each group as the cluster label (majority voting). Optionally, the Hungarian Algorithm can be used to find the best label cluster mapping for a more accurate evaluation.
+
+\section{Limitations and Challenges}
+\begin{itemize}
+    \item Lack of regularization may lead to overfitting.
+    \item Clustering is sensitive to initial K-Means seeds.
+    \item t-SNE is stochastic and nonparametric.
+    \item No explicit noise-handling or denoising mechanisms.
+\end{itemize}
+
+We mitigated these challenges by using fixed random seeds, careful normalization, and evaluating over multiple runs.
+
+\section{Conclusion}
+This project demonstrates that combining autoencoders with K-Means significantly enhances the clustering performance on image data. Future improvements could include deeper architectures, regularization, and advanced clustering techniques such as Deep Embedded Clustering (DEC).
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
+
